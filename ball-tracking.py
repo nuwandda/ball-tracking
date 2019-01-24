@@ -51,12 +51,9 @@ fgbg = cv2.createBackgroundSubtractorMOG2()
 # kernel = np.ones((7, 7), np.uint8)
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
 
-detect = 0
-all_detect = 0
 
 while True:
-    # grab the current frame and initialize the occupied/unoccupied
-    # text
+    # grab the current frame
     frame = vs.read()
     frame = frame if args.get("video", None) is None else frame[1]
 
@@ -65,7 +62,7 @@ while True:
     if frame is None:
         break
 
-    # resize the frame, convert it to grayscale, and blur it
+    # resize the frame, convert it to grayscale
     frame = imutils.resize(frame, width=400)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     # blurred = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -75,10 +72,7 @@ while True:
         firstFrame = gray
         continue
 
-    # compute the absolute difference between the current frame and
-    # first frame
 
-    # absolute yerine bg sub kullan
     fgmask = fgbg.apply(gray)
     closing = cv2.morphologyEx(fgmask, cv2.MORPH_CLOSE, kernel)
     opening = cv2.morphologyEx(closing, cv2.MORPH_OPEN, kernel)
@@ -86,7 +80,7 @@ while True:
     # frameDelta = cv2.absdiff(firstFrame, opening)
     # thresh = cv2.threshold(fgmask, 25, 255, cv2.THRESH_BINARY)[1]
 
-    # dilate the thresholded image to fill in holes, then find contours
+    # dilate the opening image to fill in holes, then find contours
     # on thresholded image
     thresh = cv2.dilate(opening, kernel, iterations=2)
     # th = thresh[thresh < 240] = 0
@@ -105,9 +99,7 @@ while True:
         roi = frame[y: (y + h), x: (x + w)]
         key_points = detect_ball(roi)
         if len(key_points) > 0:
-            detect = detect + 1
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        all_detect = all_detect + 1
 
     # show the frame and record if the user presses a key
     cv2.imshow("Frame", frame)
@@ -122,6 +114,4 @@ while True:
 
 # cleanup the camera and close any open windows
 vs.stop() if args.get("video", None) is None else vs.release()
-print("Found ball in all frames: ", detect)
-print("Detection in all frames: ", all_detect)
 cv2.destroyAllWindows()
