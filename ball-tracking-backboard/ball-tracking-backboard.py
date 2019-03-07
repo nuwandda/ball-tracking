@@ -5,6 +5,22 @@ import time
 import cv2
 import numpy as np
 
+"""
+    frame id ler ile framleri bufferda tut backboard üzerinde topu bulduğunda o id'li framden geriye git
+    her top için belli bir çerçevede background subtraction yap
+"""
+class FrameObject:
+    #An object to hold frame's index and actual frame
+    def __init__(self,frame = None,index = None):
+        self.frame = frame
+        self.index = index
+
+    def getFrame(self):
+        return self.frame
+
+    def getIndex(self):
+        return self.index
+
 
 def detect_ball(image):
     params = cv2.SimpleBlobDetector_Params()
@@ -46,6 +62,8 @@ else:
 
 firstFrame = None
 backboard = False
+frame_buffer = []
+object_counter = 0
 
 fgbg = cv2.createBackgroundSubtractorMOG2()
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
@@ -57,6 +75,9 @@ while True:
 
     # resize the frame, convert it to grayscale
     frame = imutils.resize(frame, width=400)
+    frame_object = FrameObject(frame, object_counter)
+    object_counter = object_counter + 1
+    frame_buffer.append(frame_object)
 
     if backboard is False:
         # Select ROI
@@ -102,9 +123,44 @@ while True:
         key_points = detect_ball(roi)
         if len(key_points) > 0:
             cv2.rectangle(imCrop, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            play_count = 0
+            for reverse_play in reversed(frame_buffer):
+                reverse_gray = cv2.cvtColor(reverse_play.getFrame(), cv2.COLOR_BGR2GRAY)
+                reverse_fgmask = fgbg.apply(reverse_gray)
+                reverse_closing = cv2.morphologyEx(reverse_fgmask, cv2.MORPH_CLOSE, kernel)
+                reverse_opening = cv2.morphologyEx(reverse_closing, cv2.MORPH_OPEN, kernel)
 
-    cv2.imshow("Masked", opening)
+                reverse_thresh = cv2.dilate(reverse_opening, kernel, iterations=2)
+                reverse_cnts = cv2.findContours(reverse_thresh.copy(), cv2.RETR_EXTERNAL,
+                            cv2.CHAIN_APPROX_SIMPLE)
+                reverse_cnts = reverse_cnts[0] if imutils.is_cv2() else reverse_cnts[1]
+                
+                inner_count = 0
+                for r_c in reverse_cnts:
+                    # if the contour is too small, ignore it
+                    if cv2.contourArea(r_c) < args["min_area"]:
+                        continue
+
+                    # compute the bounding box for the contour, find ball with blob detection, draw it on the frame
+                    (x, y, w, h) = cv2.boundingRect(r_c)
+                    r_roi = frame[y: (y + h), x: (x + w)]
+                    r_key_points = detect_ball(r_roi)
+                    if len(r_key_points) > 0:
+                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                        cv2.imwrite("detected_" + str(play_count) + "_" + str(inner_count) + ".jpg", frame)
+                        inner_count = inner_count + 1
+                        cv2.imshow("Reversed", frame)
+                        key = cv2.waitKey(1) & 0xFF
+
+                        # if the `b` key is pressed, break from the lop
+                        if key == ord("b"):
+                            break
+
+
+    # cv2.imshow("Masked", opening)
     cv2.imshow("Cropped", imCrop)
+    # print (frame_buffer)
+    # print (frame_object.getFrame(), frame_object.getIndex())
 
     key = cv2.waitKey(1) & 0xFF
 
