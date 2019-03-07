@@ -147,14 +147,8 @@ while True:
                     r_key_points = detect_ball(r_roi)
                     if len(r_key_points) > 0:
                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                        cv2.imwrite("detected_" + str(play_count) + "_" + str(inner_count) + ".jpg", frame)
+                        cv2.imwrite("/Users/nuwanda/Documents/GitHub/ball_tracking/detected_" + str(play_count) + "_" + str(inner_count) + ".jpg", frame)
                         inner_count = inner_count + 1
-                        cv2.imshow("Reversed", frame)
-                        key = cv2.waitKey(1) & 0xFF
-
-                        # if the `b` key is pressed, break from the lop
-                        if key == ord("b"):
-                            break
 
 
     # cv2.imshow("Masked", opening)
