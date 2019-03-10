@@ -5,10 +5,7 @@ import time
 import cv2
 import numpy as np
 
-"""
-    frame id ler ile framleri bufferda tut backboard üzerinde topu bulduğunda o id'li framden geriye git
-    her top için belli bir çerçevede background subtraction yap
-"""
+
 class FrameObject:
     #An object to hold frame's index and actual frame
     def __init__(self,frame = None,index = None):
@@ -64,6 +61,7 @@ firstFrame = None
 backboard = False
 frame_buffer = []
 object_counter = 0
+play_count = 0
 
 fgbg = cv2.createBackgroundSubtractorMOG2()
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
@@ -85,7 +83,8 @@ while True:
         backboard = True
      
     # Crop image
-    imCrop = frame[int(r[1]):int(r[1]+r[3]), int(r[0]):int(r[0]+r[2])]
+    frame_copy = frame.copy()
+    imCrop = frame_copy[int(r[1]):int(r[1]+r[3]), int(r[0]):int(r[0]+r[2])]
 
     # if the frame could not be grabbed, then we have reached the end
     # of the video
@@ -123,8 +122,12 @@ while True:
         key_points = detect_ball(roi)
         if len(key_points) > 0:
             cv2.rectangle(imCrop, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            play_count = 0
+
+            inner_count = 0
             for reverse_play in reversed(frame_buffer):
+                if play_count == 30:
+                    break
+                # cv2.imwrite("reverse_frame_" + str(play_count) + ".jpg", reverse_play.getFrame())
                 reverse_gray = cv2.cvtColor(reverse_play.getFrame(), cv2.COLOR_BGR2GRAY)
                 reverse_fgmask = fgbg.apply(reverse_gray)
                 reverse_closing = cv2.morphologyEx(reverse_fgmask, cv2.MORPH_CLOSE, kernel)
@@ -135,7 +138,6 @@ while True:
                             cv2.CHAIN_APPROX_SIMPLE)
                 reverse_cnts = reverse_cnts[0] if imutils.is_cv2() else reverse_cnts[1]
                 
-                inner_count = 0
                 for r_c in reverse_cnts:
                     # if the contour is too small, ignore it
                     if cv2.contourArea(r_c) < args["min_area"]:
@@ -143,12 +145,13 @@ while True:
 
                     # compute the bounding box for the contour, find ball with blob detection, draw it on the frame
                     (x, y, w, h) = cv2.boundingRect(r_c)
-                    r_roi = frame[y: (y + h), x: (x + w)]
+                    r_roi = reverse_play.getFrame()[y: (y + h), x: (x + w)]
                     r_key_points = detect_ball(r_roi)
                     if len(r_key_points) > 0:
-                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                        cv2.imwrite("/Users/nuwanda/Documents/GitHub/ball_tracking/detected_" + str(play_count) + "_" + str(inner_count) + ".jpg", frame)
+                        cv2.rectangle(reverse_play.getFrame(), (x, y), (x + w, y + h), (0, 255, 0), 2)
+                        cv2.imwrite("detected_" + str(play_count) + "_" + str(inner_count) + ".jpg", reverse_play.getFrame())
                         inner_count = inner_count + 1
+            play_count = play_count + 1
 
 
     # cv2.imshow("Masked", opening)
