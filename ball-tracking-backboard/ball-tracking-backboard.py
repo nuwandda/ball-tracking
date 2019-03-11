@@ -93,6 +93,9 @@ while True:
     if frame is None or imCrop is None:
         break
 
+    if five_frame_processed == 5:
+        five_frame_processed = 0
+
     # resize the frame, convert it to grayscale
     gray = cv2.cvtColor(imCrop, cv2.COLOR_BGR2GRAY)
 
@@ -126,36 +129,38 @@ while True:
             cv2.rectangle(imCrop, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
             inner_count = 0
-            for reverse_play in reversed(frame_buffer):
-                if inner_count == 30:
-                    break
-                # cv2.imwrite("reverse_frame_" + str(play_count) + ".jpg", reverse_play.getFrame())
+            if five_frame_processed == 0:
+                for reverse_play in reversed(frame_buffer):
+                    if inner_count == 30:
+                        break
+                    # cv2.imwrite("reverse_frame_" + str(play_count) + ".jpg", reverse_play.getFrame())
 
-                reverse_gray = cv2.cvtColor(reverse_play.getFrame(), cv2.COLOR_BGR2GRAY)
-                reverse_fgmask = fgbg.apply(reverse_gray)
-                reverse_closing = cv2.morphologyEx(reverse_fgmask, cv2.MORPH_CLOSE, kernel)
-                reverse_opening = cv2.morphologyEx(reverse_closing, cv2.MORPH_OPEN, kernel)
+                    reverse_gray = cv2.cvtColor(reverse_play.getFrame(), cv2.COLOR_BGR2GRAY)
+                    reverse_fgmask = fgbg.apply(reverse_gray)
+                    reverse_closing = cv2.morphologyEx(reverse_fgmask, cv2.MORPH_CLOSE, kernel)
+                    reverse_opening = cv2.morphologyEx(reverse_closing, cv2.MORPH_OPEN, kernel)
 
-                reverse_thresh = cv2.dilate(reverse_opening, kernel, iterations=2)
-                reverse_cnts = cv2.findContours(reverse_thresh.copy(), cv2.RETR_EXTERNAL,
-                            cv2.CHAIN_APPROX_SIMPLE)
-                reverse_cnts = reverse_cnts[0] if imutils.is_cv2() else reverse_cnts[1]
-                
-                for r_c in reverse_cnts:
-                    # if the contour is too small, ignore it
-                    if cv2.contourArea(r_c) < args["min_area"]:
-                        continue
+                    reverse_thresh = cv2.dilate(reverse_opening, kernel, iterations=2)
+                    reverse_cnts = cv2.findContours(reverse_thresh.copy(), cv2.RETR_EXTERNAL,
+                                cv2.CHAIN_APPROX_SIMPLE)
+                    reverse_cnts = reverse_cnts[0] if imutils.is_cv2() else reverse_cnts[1]
+                    
+                    for r_c in reverse_cnts:
+                        # if the contour is too small, ignore it
+                        if cv2.contourArea(r_c) < args["min_area"]:
+                            continue
 
-                    # compute the bounding box for the contour, find ball with blob detection, draw it on the frame
-                    (x, y, w, h) = cv2.boundingRect(r_c)
-                    r_roi = reverse_play.getFrame()[y: (y + h), x: (x + w)]
-                    r_key_points = detect_ball(r_roi)
-                    if len(r_key_points) > 0:
-                        cv2.rectangle(reverse_play.getFrame(), (x, y), (x + w, y + h), (0, 255, 0), 2)
-                        cv2.imwrite("detected_" + str(play_count) + "_" + str(inner_count) + ".jpg", reverse_play.getFrame())
-                        inner_count = inner_count + 1
-            frame_buffer = []
-            play_count = play_count + 1
+                        # compute the bounding box for the contour, find ball with blob detection, draw it on the frame
+                        (x, y, w, h) = cv2.boundingRect(r_c)
+                        r_roi = reverse_play.getFrame()[y: (y + h), x: (x + w)]
+                        r_key_points = detect_ball(r_roi)
+                        if len(r_key_points) > 0:
+                            cv2.rectangle(reverse_play.getFrame(), (x, y), (x + w, y + h), (0, 255, 0), 2)
+                            cv2.imwrite("detected_" + str(play_count) + "_" + str(inner_count) + ".jpg", reverse_play.getFrame())
+                            inner_count = inner_count + 1
+                frame_buffer = []
+                play_count = play_count + 1
+            five_frame_processed = five_frame_processed + 1
 
 
     # cv2.imshow("Masked", opening)
