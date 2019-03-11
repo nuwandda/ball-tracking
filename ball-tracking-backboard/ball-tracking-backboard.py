@@ -58,7 +58,8 @@ else:
     vs = cv2.VideoCapture(args["video"])
 
 firstFrame = None
-backboard = False
+backboard_found = False
+five_frame_processed = 0
 frame_buffer = []
 object_counter = 0
 play_count = 0
@@ -77,10 +78,10 @@ while True:
     object_counter = object_counter + 1
     frame_buffer.append(frame_object)
 
-    if backboard is False:
+    if backboard_found is False:
         # Select ROI
         r = cv2.selectROI(frame)
-        backboard = True
+        backboard_found = True
      
     # Crop image
     frame_copy = frame.copy()
@@ -125,9 +126,10 @@ while True:
 
             inner_count = 0
             for reverse_play in reversed(frame_buffer):
-                if play_count == 30:
+                if inner_count == 30:
                     break
                 # cv2.imwrite("reverse_frame_" + str(play_count) + ".jpg", reverse_play.getFrame())
+
                 reverse_gray = cv2.cvtColor(reverse_play.getFrame(), cv2.COLOR_BGR2GRAY)
                 reverse_fgmask = fgbg.apply(reverse_gray)
                 reverse_closing = cv2.morphologyEx(reverse_fgmask, cv2.MORPH_CLOSE, kernel)
@@ -151,6 +153,7 @@ while True:
                         cv2.rectangle(reverse_play.getFrame(), (x, y), (x + w, y + h), (0, 255, 0), 2)
                         cv2.imwrite("detected_" + str(play_count) + "_" + str(inner_count) + ".jpg", reverse_play.getFrame())
                         inner_count = inner_count + 1
+            frame_buffer = []
             play_count = play_count + 1
 
 
