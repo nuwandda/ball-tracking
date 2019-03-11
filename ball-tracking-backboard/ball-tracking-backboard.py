@@ -86,13 +86,6 @@ while True:
     # Crop image
     frame_copy = frame.copy()
     imCrop = frame_copy[int(r[1]):int(r[1]+r[3]), int(r[0]):int(r[0]+r[2])]
-
-    if five_frame_processed < 10 and five_frame_processed != 0:
-        five_frame_processed = five_frame_processed + 1
-        continue
-    
-    else:
-        five_frame_processed = 0
     
 
     # if the frame could not be grabbed, then we have reached the end
