@@ -5,6 +5,12 @@ import time
 import cv2
 import numpy as np
 
+# küçük karelerde bul topu
+# accuracy bulmak için train ve test dataları oluştur accuracy bul
+# refactor et kodu
+# tüm adımlarda görüntüleri kaydet
+# 
+
 
 class FrameObject:
     #An object to hold frame's index and actual frame
@@ -86,6 +92,7 @@ while True:
     # Crop image
     frame_copy = frame.copy()
     imCrop = frame_copy[int(r[1]):int(r[1]+r[3]), int(r[0]):int(r[0]+r[2])]
+    # print (int(r[1]),int(r[1]+r[3]), int(r[0]),int(r[0]+r[2]))
     
 
     # if the frame could not be grabbed, then we have reached the end
@@ -127,16 +134,19 @@ while True:
         key_points = detect_ball(roi)
         if len(key_points) > 0:
             cv2.rectangle(imCrop, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            # print(y, (y + h), x, (x + w))
+            # print(int(r[1]) + y, int(r[1]+r[3]) + (y + h), int(r[0]) + x, int(r[0]+r[2]) + (x + w))
 
             inner_count = 0
             if five_frame_processed == 0:
                 for reverse_play in reversed(frame_buffer):
+                    # cv2.rectangle(reverse_play.getFrame(), (int(r[0]) + x, int(r[1]) + y), ((x + w), (y + h)), (0, 0, 255), 2)
                     if inner_count == 30:
                         break
-                    # cv2.imwrite("reverse_frame_" + str(play_count) + ".jpg", reverse_play.getFrame())
-
+                    
                     reverse_gray = cv2.cvtColor(reverse_play.getFrame(), cv2.COLOR_BGR2GRAY)
                     reverse_fgmask = fgbg.apply(reverse_gray)
+                    
                     reverse_closing = cv2.morphologyEx(reverse_fgmask, cv2.MORPH_CLOSE, kernel)
                     reverse_opening = cv2.morphologyEx(reverse_closing, cv2.MORPH_OPEN, kernel)
 
@@ -155,8 +165,8 @@ while True:
                         r_roi = reverse_play.getFrame()[y: (y + h), x: (x + w)]
                         r_key_points = detect_ball(r_roi)
                         if len(r_key_points) > 0:
-                            cv2.rectangle(reverse_play.getFrame(), (x, y), (x + w, y + h), (0, 255, 0), 2)
-                            cv2.imwrite("detected_" + str(play_count) + "_" + str(inner_count) + ".jpg", reverse_play.getFrame())
+                            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                            cv2.imwrite("detected_" + str(play_count) + ".jpg", frame)
                             inner_count = inner_count + 1
                 frame_buffer = []
                 play_count = play_count + 1
