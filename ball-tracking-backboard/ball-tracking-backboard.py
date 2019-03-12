@@ -80,6 +80,7 @@ while True:
 
     # resize the frame, convert it to grayscale
     frame = imutils.resize(frame, width=400)
+    frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
     frame_object = FrameObject(frame, object_counter)
     object_counter = object_counter + 1
     frame_buffer.append(frame_object)
