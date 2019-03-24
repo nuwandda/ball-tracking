@@ -5,10 +5,10 @@ import time
 import cv2
 import numpy as np
 
-# küçük karelerde bul topu
+# kuçuk karelerde bul topu
 # accuracy bulmak için train ve test dataları oluştur accuracy bul
 # refactor et kodu
-# tüm adımlarda görüntüleri kaydet
+# tum adımlarda görüntüleri kaydet
 # 
 
 
@@ -93,6 +93,7 @@ while True:
     # Crop image
     frame_copy = frame.copy()
     imCrop = frame_copy[int(r[1]):int(r[1]+r[3]), int(r[0]):int(r[0]+r[2])]
+    # print (int(r[1]),int(r[1]+r[3]), int(r[0]),int(r[0]+r[2]))
     
 
     # if the frame could not be grabbed, then we have reached the end
@@ -129,42 +130,60 @@ while True:
             continue
 
         # compute the bounding box for the contour, find ball with blob detection, draw it on the frame
-        (x_frame, y_frame, w_frame, h_frame) = cv2.boundingRect(c)
-        roi = imCrop[y_frame: (y_frame + h_frame), x_frame: (x_frame + w_frame)]
+        (x, y, w, h) = cv2.boundingRect(c)
+        # To track bottom left corner of the ball's rectangle
+        points_of_ball = [int(x) + int(r[0]), int(y) + int(r[1]), w, h]
+        roi = imCrop[y: (y + h), x: (x + w)]
         key_points = detect_ball(roi)
         if len(key_points) > 0:
-            print (x_frame, y_frame)
-            cv2.rectangle(imCrop, (x_frame, y_frame), (x_frame + w_frame, y_frame + h_frame), (0, 255, 0), 2)
+            cv2.rectangle(imCrop, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            # print(y, (y + h), x, (x + w))
+            # print(int(r[1]) + y, int(r[1]+r[3]) + (y + h), int(r[0]) + x, int(r[0]+r[2]) + (x + w))
 
             inner_count = 0
             if five_frame_processed == 0:
+                search_x = points_of_ball[0]
+                search_y = points_of_ball[1]
+                search_w = points_of_ball[2]
+                search_h = points_of_ball[3]
+                # found_points = []
                 for reverse_play in reversed(frame_buffer):
-                    
-                    if inner_count == 0:
-                        search_frame = reverse_play.getFrame()[(y_frame + r[1] - 15):(r[1] + y_frame + h_frame + 15), (x_frame + r[0] -15):(r[0] + x_frame + w_frame + 15)]
-                        cv2.imwrite("deneme" + str(inner_count) + ".jpg", search_frame)
-                    else:
-                        if inner_count < 2:
-                            search_frame = reverse_play.getFrame()[(y + r[1] - 15):(r[1] + y + h + 15), (x + r[0] -15):(r[0] + x + w + 15)]
-                            cv2.imwrite("deneme" + str(inner_count) + ".jpg", search_frame)
-
+                    # cv2.rectangle(reverse_play.getFrame(), (int(r[0]) + x, int(r[1]) + y), ((x + w), (y + h)), (0, 0, 255), 2)
                     if inner_count == 30:
                         break
 
+                    if inner_count == 0:
+                        print("search_x", search_x)
+                        print("search_y", search_y)
+                    elif 0 < inner_count < 20:
+                        search_x = search_x + x
+                        # search_y -= y
+                        print("search_x", search_x)
+                        print("search_y", search_y)
+                    else:
+                        search_x = search_x + x
+                        search_y = search_y + y
+                        print("search_x", search_x)
+                        print("search_y", search_y)
+
+                    search_frame = reverse_play.getFrame()[int(search_y * 0.8): (int(search_y + search_h * 1.3)), 
+                        int(search_x * 0.8): (int(search_x + search_w * 1.3))]
+                    
+                    cv2.imwrite("search" + str(inner_count) + ".jpg", search_frame)
+                    # cv2.imwrite("search_full" + str(inner_count) + ".jpg", reverse_play.getFrame())
                     reverse_gray = cv2.cvtColor(search_frame, cv2.COLOR_BGR2GRAY)
                     reverse_fgmask = fgbg.apply(reverse_gray)
                     
-                    
                     reverse_closing = cv2.morphologyEx(reverse_fgmask, cv2.MORPH_CLOSE, kernel)
                     reverse_opening = cv2.morphologyEx(reverse_closing, cv2.MORPH_OPEN, kernel)
+                    # reverse_closing = cv2.morphologyEx(reverse_opening, cv2.MORPH_CLOSE, kernel)
 
-                    reverse_thresh = cv2.dilate(reverse_opening, kernel, iterations=2)
+                    reverse_thresh = cv2.dilate(reverse_closing, kernel, iterations=2)
+                    cv2.imwrite("thresh" + str(inner_count) + ".jpg", reverse_thresh)
                     reverse_cnts = cv2.findContours(reverse_thresh.copy(), cv2.RETR_EXTERNAL,
                                 cv2.CHAIN_APPROX_SIMPLE)
                     reverse_cnts = reverse_cnts[0] if imutils.is_cv2() else reverse_cnts[1]
-
-                    # cv2.rectangle(frame, (int(r[0] + x_frame - 15), int(r[1] + y_frame - 15)), (int(r[0] + x_frame + w_frame + 15), int(r[1] + y_frame + h_frame + 15)),
-                    #  (123, 5, 40), 2)
+                    
                     for r_c in reverse_cnts:
                         # if the contour is too small, ignore it
                         if cv2.contourArea(r_c) < args["min_area"]:
@@ -173,16 +192,22 @@ while True:
                         # compute the bounding box for the contour, find ball with blob detection, draw it on the frame
                         (x, y, w, h) = cv2.boundingRect(r_c)
                         r_roi = search_frame[y: (y + h), x: (x + w)]
-                        cv2.imwrite("roi" + str(inner_count) + ".jpg", r_roi)
+                        # cv2.imwrite("search_roi" + str(inner_count) + ".jpg", r_roi)
                         r_key_points = detect_ball(r_roi)
                         if len(r_key_points) > 0:
                             print(x,y)
-                            cv2.rectangle(frame, (int(r[0] + x + x_frame), int(r[1] + y + y_frame)), (int(r[0] + x + w + w_frame), int(r[1] + y + h)), (0, 255, 0), 2)
+                            # found_points.append(int(search_x * 0.8), int(search_y * 0.8), w, h)
+                            # print(found_points)
+                            
+                            #cv2.rectangle(frame, (int(search_x), int(search_y)), (int(search_x) + w, int(search_y) + h), (0, 255, 0), 2)
+                            cv2.rectangle(search_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                            # cv2.rectangle(frame, (found_points[0], found_points[1]),
+                            #     (found_points[0] + w, found_points[1]+ h), (0, 255, 0), 2)
                             cv2.imwrite("detected_" + str(play_count) + ".jpg", frame)
-                            inner_count = inner_count + 1
-                            # cv2.imwrite("deneme" + str(inner_count) + ".jpg", search_frame)
-                            # search_frame = reverse_play.getFrame()[(y + r[1] - 15):(r[1] + y + h + 15), (x + r[0] -15):(r[0] + x + w + 15)]
-
+                            cv2.imwrite("search_found" + str(inner_count) + ".jpg", search_frame)
+                        # found_points = []
+                        inner_count = inner_count + 1
+                        print("inner_count: ", inner_count)
                 frame_buffer = []
                 play_count = play_count + 1
             five_frame_processed = five_frame_processed + 1
