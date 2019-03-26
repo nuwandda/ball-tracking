@@ -117,7 +117,7 @@ while True:
                 os.makedirs(path_thresh)
                 for reverse_play in reversed(frame_buffer):
                     # cv2.rectangle(reverse_play.getFrame(), (int(r[0]) + x, int(r[1]) + y), ((x + w), (y + h)), (0, 0, 255), 2)
-                    if inner_count == 30:
+                    if inner_count == 32:
                         break
 
                     search_frame = reverse_play.getFrame()[int(search_y * 0.8): (int(search_y + search_h * 1.3)), 
@@ -154,7 +154,10 @@ while True:
                         if len(r_key_points) > 0:
                             if int(search_x * 0.8) < x < int(search_x + search_w * 1.3) and int(search_y * 0.8) < y < int(search_y + search_h * 1.3):
                                 if inner_count != 0:
-                                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                                    if y + h > int(search_y + search_h * 1.3): 
+                                        cv2.rectangle(frame, (x, y), (x + w, y + h - search_h), (0, 255, 0), 2)
+                                    else:
+                                        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                                     # cv2.rectangle(frame, (int(search_x * 0.8), int(search_y * 0.8)),
                                     #  (int(search_x + search_w * 1.3) , int(search_y + search_h * 1.3)), (255, 0, 0), 2)
                                 cv2.imwrite("detected_" + str(play_count) + ".jpg", frame)
