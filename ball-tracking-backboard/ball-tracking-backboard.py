@@ -4,10 +4,9 @@ import imutils
 import time
 import cv2
 import numpy as np
-import  os
+import os
 from frame import FrameObject
 from detect_ball import DetectBall
-
 
 # accuracy bulmak için train ve test dataları oluştur accuracy bul
 # refactor et kodu
@@ -54,11 +53,10 @@ while True:
         # Select ROI
         r = cv2.selectROI(frame)
         backboard_found = True
-     
+
     # Crop image
     frame_copy = frame.copy()
-    imCrop = frame_copy[int(r[1]):int(r[1]+r[3]), int(r[0]):int(r[0]+r[2])]
-    
+    imCrop = frame_copy[int(r[1]):int(r[1] + r[3]), int(r[0]):int(r[0] + r[2])]
 
     # if the frame could not be grabbed, then we have reached the end
     # of the video
@@ -120,27 +118,27 @@ while True:
                     if inner_count == 32:
                         break
 
-                    search_frame = reverse_play.getFrame()[int(search_y * 0.8): (int(search_y + search_h * 1.3)), 
-                            int(search_x * 0.8): (int(search_x + search_w * 1.3))]
+                    search_frame = reverse_play.getFrame()[int(search_y * 0.8): (int(search_y + search_h * 1.3)),
+                                   int(search_x * 0.8): (int(search_x + search_w * 1.3))]
 
                     cv2.imwrite(os.path.join(path_search, 'search_' + str(inner_count) + '.jpg'), search_frame)
-                    
+
                     reverse_gray = cv2.cvtColor(reverse_play.getFrame(), cv2.COLOR_BGR2GRAY)
                     reverse_fgmask = fgbg.apply(reverse_gray)
-                    
+
                     reverse_closing = cv2.morphologyEx(reverse_fgmask, cv2.MORPH_CLOSE, kernel)
                     reverse_opening = cv2.morphologyEx(reverse_closing, cv2.MORPH_OPEN, kernel)
 
                     reverse_thresh = cv2.dilate(reverse_opening, kernel, iterations=2)
 
-                    search_thresh = reverse_thresh[int(search_y * 0.8): (int(search_y + search_h * 1.3)), 
-                            int(search_x * 0.8): (int(search_x + search_w * 1.3))]
+                    search_thresh = reverse_thresh[int(search_y * 0.8): (int(search_y + search_h * 1.3)),
+                                    int(search_x * 0.8): (int(search_x + search_w * 1.3))]
                     cv2.imwrite(os.path.join(path_thresh, 'search_thresh_' + str(inner_count) + '.jpg'), search_thresh)
 
                     reverse_cnts = cv2.findContours(reverse_thresh.copy(), cv2.RETR_EXTERNAL,
-                                cv2.CHAIN_APPROX_SIMPLE)
+                                                    cv2.CHAIN_APPROX_SIMPLE)
                     reverse_cnts = reverse_cnts[0] if imutils.is_cv2() else reverse_cnts[1]
-                    
+
                     for r_c in reverse_cnts:
                         # if the contour is too small, ignore it
                         if cv2.contourArea(r_c) < args["min_area"]:
@@ -148,13 +146,14 @@ while True:
 
                         # compute the bounding box for the contour, find ball with blob detection, draw it on the frame
                         (x, y, w, h) = cv2.boundingRect(r_c)
-                        
+
                         r_roi = reverse_play.getFrame()[y: (y + h), x: (x + w)]
                         r_key_points = DetectBall.detect_ball(r_roi)
                         if len(r_key_points) > 0:
-                            if int(search_x * 0.8) < x < int(search_x + search_w * 1.3) and int(search_y * 0.8) < y < int(search_y + search_h * 1.3):
+                            if int(search_x * 0.8) < x < int(search_x + search_w * 1.3) and int(
+                                    search_y * 0.8) < y < int(search_y + search_h * 1.3):
                                 if inner_count != 0:
-                                    if y + h > int(search_y + search_h * 1.3): 
+                                    if y + h > int(search_y + search_h * 1.3):
                                         cv2.rectangle(frame, (x, y), (x + w, y + h - search_h), (0, 255, 0), 2)
                                     else:
                                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -171,7 +170,6 @@ while True:
                 frame_buffer = []
                 play_count = play_count + 1
             five_frame_processed = five_frame_processed + 1
-
 
     cv2.imshow("Cropped", imCrop)
 
