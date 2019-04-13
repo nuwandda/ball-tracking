@@ -7,9 +7,9 @@ class DetectBall:
     Returns:
         List -- Returns list of key points
     """
+
     def __init__(self):
         pass
-
 
     def detect_ball(image):
         params = cv2.SimpleBlobDetector_Params()

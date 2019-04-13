@@ -100,8 +100,6 @@ while True:
         key_points = DetectBall.detect_ball(roi)
         if len(key_points) > 0:
             cv2.rectangle(imCrop, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            # print(y, (y + h), x, (x + w))
-            # print(int(r[1]) + y, int(r[1]+r[3]) + (y + h), int(r[0]) + x, int(r[0]+r[2]) + (x + w))
 
             inner_count = 0
             if five_frame_processed == 0:
@@ -114,7 +112,6 @@ while True:
                 os.makedirs(path_search)
                 os.makedirs(path_thresh)
                 for reverse_play in reversed(frame_buffer):
-                    # cv2.rectangle(reverse_play.getFrame(), (int(r[0]) + x, int(r[1]) + y), ((x + w), (y + h)), (0, 0, 255), 2)
                     if inner_count == 32:
                         break
 
@@ -148,7 +145,9 @@ while True:
                         (x, y, w, h) = cv2.boundingRect(r_c)
 
                         r_roi = reverse_play.getFrame()[y: (y + h), x: (x + w)]
+                        r_roi_temp = reverse_play.getFrame()[y + 10: (y + h), x + 10: (x + w)]
                         r_key_points = DetectBall.detect_ball(r_roi)
+                        r_key_points_tmp = DetectBall.detect_ball(r_roi_temp)
                         if len(r_key_points) > 0:
                             if int(search_x * 0.8) < x < int(search_x + search_w * 1.3) and int(
                                     search_y * 0.8) < y < int(search_y + search_h * 1.3):
@@ -157,8 +156,7 @@ while True:
                                         cv2.rectangle(frame, (x, y), (x + w, y + h - search_h), (0, 255, 0), 2)
                                     else:
                                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                                    # cv2.rectangle(frame, (int(search_x * 0.8), int(search_y * 0.8)),
-                                    #  (int(search_x + search_w * 1.3) , int(search_y + search_h * 1.3)), (255, 0, 0), 2)
+
                                 cv2.imwrite("detected_" + str(play_count) + ".jpg", frame)
                                 if x == 0 or y == 0:
                                     continue
