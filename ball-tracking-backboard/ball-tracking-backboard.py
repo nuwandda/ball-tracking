@@ -1,3 +1,5 @@
+import glob
+
 from imutils.video import VideoStream
 import argparse
 import imutils
@@ -7,6 +9,8 @@ import numpy as np
 import os
 from frame import FrameObject
 from detect_ball import DetectBall
+from poly_fit import PolyFit
+from io_operations import IOOperations
 
 # accuracy bulmak için train ve test dataları oluştur accuracy bul
 # refactor et kodu
@@ -34,6 +38,8 @@ play_count = 0
 
 fgbg = cv2.createBackgroundSubtractorMOG2()
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
+poly_constructor = PolyFit()
+operations = IOOperations()
 
 while True:
     # grab the current frame
@@ -47,6 +53,8 @@ while True:
     frame_object = FrameObject(frame, object_counter)
     object_counter = object_counter + 1
     frame_buffer.append(frame_object)
+    coef_x = []
+    coef_y = []
 
     # Selects ROI if nothing selected
     if backboard_found is False:
@@ -107,10 +115,14 @@ while True:
                 search_y = points_of_ball[1]
                 search_w = points_of_ball[2]
                 search_h = points_of_ball[3]
-                path_search = 'search_' + str(play_count)
-                path_thresh = 'search_thresh_' + str(play_count)
+                path_base = 'play_' + str(play_count)
+                path_search = 'play_' + str(play_count) + '/search_' + str(play_count)
+                path_thresh = 'play_' + str(play_count) + '/search_thresh_' + str(play_count)
+                path_coefs = 'play_' + str(play_count) + '/coefs' + str(play_count)
+                os.makedirs(path_base)
                 os.makedirs(path_search)
                 os.makedirs(path_thresh)
+
                 for reverse_play in reversed(frame_buffer):
                     if inner_count == 32:
                         break
@@ -154,10 +166,16 @@ while True:
                                 if inner_count != 0:
                                     if y + h > int(search_y + search_h * 1.3):
                                         cv2.rectangle(frame, (x, y), (x + w, y + h - search_h), (0, 255, 0), 2)
+                                        if (x + w) / 2 != 0 and (y + h - search_h) / 2 != 0:
+                                            coef_x.append((x + w/2))
+                                            coef_y.append((y + h/2 - search_h))
                                     else:
                                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                                        if (x + w) / 2 != 0 and (y + h) / 2 != 0:
+                                            coef_x.append((x + w/2))
+                                            coef_y.append((y + h/2))
 
-                                cv2.imwrite("detected_" + str(play_count) + ".jpg", frame)
+                                cv2.imwrite(os.path.join(path_base, "detected_" + str(play_count)) + ".jpg", frame)
                                 if x == 0 or y == 0:
                                     continue
                                 search_x = x
@@ -165,7 +183,36 @@ while True:
                                 search_w = w
                                 search_h = h
                     inner_count = inner_count + 1
+
+                with open(path_coefs + '_x.txt', 'w') as f:
+                    for index, item in enumerate(coef_x):
+                        if index + 1 == len(coef_x):
+                            f.write("%s" % item)
+                        else:
+                            f.write("%s," % item)
+
+                with open(path_coefs + '_y.txt', 'w') as f:
+                    for index, item in enumerate(coef_y):
+                        if index + 1 == len(coef_y):
+                            f.write("%s" % item)
+                        else:
+                            f.write("%s," % item)
+
+                # np_coefs_x = operations.read_parse_txt(path_coefs + '_x.txt')
+                # np_coefs_y = operations.read_parse_txt(path_coefs + '_y.txt')
+
+                np_coefs_x = np.array(coef_x)
+                np_coefs_y = np.array(coef_y)
+                # print(np_coefs_x)
+                #
+                # poly_image = cv2.imread(os.path.join(path_base, "detected_" + str(play_count)) + ".jpg")
+                # cv2.imshow("deneme", poly_image)
+                # poly_constructor.fit_np(np_coefs_x, np_coefs_y, 3)
+
+
                 frame_buffer = []
+                coef_x = []
+                coef_y = []
                 play_count = play_count + 1
             five_frame_processed = five_frame_processed + 1
 
@@ -173,6 +220,6 @@ while True:
 
     key = cv2.waitKey(1) & 0xFF
 
-    # if the `q` key is pressed, break from the lop
+    # if the `q` key is pressed, break from the loop
     if key == ord("q"):
         break
