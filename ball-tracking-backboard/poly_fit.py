@@ -30,7 +30,7 @@ class PolyFit:
         plt.scatter(coef_x, coef_y, color='blue')
 
         plt.plot(coef_x, lin2.predict(poly.fit_transform(coef_x)), color='red')
-        plt.title('Polynomial Regression')
+        # plt.title('Polynomial Regression')
 
         # fig = plt.figure()
         # plt.savefig("my_img.png")
@@ -57,11 +57,11 @@ class PolyFit:
 
         xp = np.linspace(x.min(), x.max(), 100)
         # print(xp)
-        image = mpimg.imread("play_0/detected_0.jpg")
+        image = mpimg.imread("detected_0.jpg")
         plt.imshow(image)
 
         plt.plot(x, y, '.', xp, p(xp), '-')
         #plt.gca().invert_yaxis()
-        plt.savefig("play_0/curve.jpg")
+        plt.savefig("curve.jpg")
 
 
