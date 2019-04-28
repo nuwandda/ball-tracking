@@ -218,13 +218,13 @@ while True:
                                     if y + h > int(search_y + search_h * 1.3):
                                         cv2.rectangle(frame, (x, y), (x + w, y + h - search_h), (0, 255, 0), 2)
                                         if (x + w) / 2 != 0 and (y + h - search_h) / 2 != 0:
-                                            coef_x.append((x + w/2))
-                                            coef_y.append((y + h/2 - search_h))
+                                            coef_x.append((x + w / 2))
+                                            coef_y.append((y + h / 2 - search_h))
                                     else:
                                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                                         if (x + w) / 2 != 0 and (y + h) / 2 != 0:
-                                            coef_x.append((x + w/2))
-                                            coef_y.append((y + h/2))
+                                            coef_x.append((x + w / 2))
+                                            coef_y.append((y + h / 2))
 
                                 cv2.imwrite(os.path.join(path_base, "detected_" + str(play_count)) + ".jpg", frame)
                                 if x == 0 or y == 0:
@@ -250,16 +250,8 @@ while True:
                         else:
                             f.write("%s," % item)
 
-                # np_coefs_x = operations.read_parse_txt(path_coefs + '_x.txt')
-                # np_coefs_y = operations.read_parse_txt(path_coefs + '_y.txt')
-
                 np_coefs_x = np.array(coef_x)
                 np_coefs_y = np.array(coef_y)
-                # print(np_coefs_x)
-                #
-                # poly_image = cv2.imread(os.path.join(path_base, "detected_" + str(play_count)) + ".jpg")
-                # cv2.imshow("deneme", poly_image)
-                # poly_constructor.fit_np(np_coefs_x, np_coefs_y, 3)
 
                 # warped = warp.four_point_transform(frame, src_points)
                 warped, h = pt.apply_homography(src_points, dst_points, frame, dst_img)
