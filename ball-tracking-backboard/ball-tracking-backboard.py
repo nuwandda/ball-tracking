@@ -16,6 +16,13 @@ from io_operations import IOOperations
 # refactor et kodu
 
 
+def on_mouse(event, real_x, real_y, flags, param):
+    global src_points
+    if event == cv2.EVENT_LBUTTONDOWN:
+        cv2.circle(frame_clone, (real_x, real_y), 3, (0, 0, 255), thickness=-1)
+        src_points.append([real_x, real_y])
+
+
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", help="path to the video file")
 ap.add_argument("-a", "--min-area", type=int, default=500, help="minimum area size")
@@ -40,6 +47,39 @@ fgbg = cv2.createBackgroundSubtractorMOG2()
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
 poly_constructor = PolyFit()
 operations = IOOperations()
+
+while True:
+    # grab the current frame
+    frame = vs.read()
+    frame = frame if args.get("video", None) is None else frame[1]
+
+    # resize the frame, convert it to grayscale
+    frame = imutils.resize(frame, width=400)
+    frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+    frame_clone = frame.copy()
+    cv2.namedWindow("Homography")
+    cv2.setMouseCallback("Homography", on_mouse)
+
+    # keep looping until the 'e' key is pressed
+    # this loop is for choosing real points for homography
+    while True:
+        # display the image and wait for a keypress
+        cv2.imshow("Homography", frame_clone)
+        key = cv2.waitKey(1) & 0xFF
+
+        # if the 'r' key is pressed, reset the cropping region
+        if key == ord("r"):
+            src_points = []
+            frame_clone = frame.copy()
+
+        # if the 'e' key is pressed, break from the loop
+        elif key == ord("e"):
+            src_points = np.array(src_points)
+            print(src_points)
+            cv2.destroyWindow("Homography")
+            break
+    break
 
 while True:
     # grab the current frame
