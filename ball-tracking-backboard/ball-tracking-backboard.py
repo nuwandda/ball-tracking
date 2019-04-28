@@ -11,6 +11,8 @@ from frame import FrameObject
 from detect_ball import DetectBall
 from poly_fit import PolyFit
 from io_operations import IOOperations
+from perspective_transform import PerspectiveTransform as pt
+
 
 # accuracy bulmak için train ve test dataları oluştur accuracy bul
 # refactor et kodu
@@ -42,6 +44,14 @@ five_frame_processed = 0
 frame_buffer = []
 object_counter = 0
 play_count = 0
+src_points = []
+# destination points for homography estimation based on homo_dst.jpg
+dst_img = cv2.imread("homo_dst.jpg")
+dst_points = np.array([[239, 74],
+                       [240, 290],
+                       [375, 291],
+                       [374, 74]])
+dst_image_clone = dst_img.copy()
 
 fgbg = cv2.createBackgroundSubtractorMOG2()
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
@@ -95,6 +105,7 @@ while True:
     frame_buffer.append(frame_object)
     coef_x = []
     coef_y = []
+    src_shot_location = np.array([])
 
     # Selects ROI if nothing selected
     if backboard_found is False:
@@ -235,6 +246,7 @@ while True:
                     for index, item in enumerate(coef_y):
                         if index + 1 == len(coef_y):
                             f.write("%s" % item)
+                            src_shot_location = np.append(src_shot_location, [coef_x[index], coef_y[index]])
                         else:
                             f.write("%s," % item)
 
@@ -249,6 +261,13 @@ while True:
                 # cv2.imshow("deneme", poly_image)
                 # poly_constructor.fit_np(np_coefs_x, np_coefs_y, 3)
 
+                # warped = warp.four_point_transform(frame, src_points)
+                warped, h = pt.apply_homography(src_points, dst_points, frame, dst_img)
+                cv2.imwrite(os.path.join(path_base, "warped_" + str(play_count)) + ".jpg", warped)
+
+                t_shot_homo_coor, t_shot_cart_coor = pt.point_to_point_homography(src_shot_location, h)
+                cv2.circle(dst_image_clone, (t_shot_cart_coor[0], t_shot_cart_coor[1]), 3, (0, 0, 255), thickness=-1)
+                cv2.imwrite(os.path.join(path_base, "heatmap") + ".jpg", dst_image_clone)
 
                 frame_buffer = []
                 coef_x = []
