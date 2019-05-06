@@ -12,6 +12,8 @@ A program that tracks the ball and estimates the shot location of a basketball s
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;8.Convert world shot location points to the pixel shot location points with homography. </br>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;9.Mark the shot location on the heat map. </br>
     </br>
+    
+Thanks to the PyImageSearch for showing me the best examples and sources.
 
 ## Sample Images
 ![alt text](https://github.com/nuwandda/ball-tracking/blob/development/screenshot01.png "Logo Title Text 1")
@@ -23,5 +25,3 @@ A program that tracks the ball and estimates the shot location of a basketball s
 ![alt text](https://github.com/nuwandda/ball-tracking/blob/development/yolo_image3.jpg "Logo Title Text 2")
 
 ![alt text](https://github.com/nuwandda/ball-tracking/blob/development/heatmap.jpg "Logo Title Text 3")
-
-Thanks to the PyImageSearch for showing me the best examples and sources.
