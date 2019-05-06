@@ -8,3 +8,8 @@ ball-tracking-backboard/.DS_Store
 *.jpg
 .DS_Store
 .DS_Store
+ball-tracking-backboard/yolo-coco/coco.names
+ball-tracking-backboard/yolo-coco/yolov3.cfg
+ball-tracking-backboard/yolo-coco/yolov3.weights
+ball-tracking-backboard/yolo-coco/yolov3-tiny.weights
+*.pyc
