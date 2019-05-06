@@ -9,7 +9,8 @@ class PolyFit:
     def __init__(self):
         pass
 
-    def fit(self, coef_x, coef_y, degree):
+    @staticmethod
+    def fit(coef_x, coef_y, degree):
         lin = LinearRegression()
         lin.fit(coef_x, coef_y)
 
@@ -47,7 +48,8 @@ class PolyFit:
         # print(data)
         plt.show()
 
-    def fit_np(self, x, y, degree):
+    @staticmethod
+    def fit_np(x, y, degree):
         z = np.polyfit(x, y, degree)
         # print(z)
 
