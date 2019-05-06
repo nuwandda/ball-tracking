@@ -14,3 +14,11 @@ ball-tracking-backboard/yolo-coco/yolov3-tiny.weights
 *.pyc
 ball-tracking-backboard/curve.jpg
 ball-tracking-backboard/detected_0.jpg
+ball-tracking-backboard/play_0/
+ball-tracking-backboard/play_1/
+ball-tracking-backboard/play_2/
+ball-tracking-backboard/play_3/
+ball-tracking-backboard/play_4/
+ball-tracking-backboard/__pycache__/frame.cpython-37.pyc
+ball-tracking-backboard/__pycache__/frame.cpython-37.pyc
+.DS_Store
