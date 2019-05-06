@@ -12,6 +12,7 @@ from detect_ball import DetectBall
 from poly_fit import PolyFit
 from io_operations import IOOperations
 from perspective_transform import PerspectiveTransform as pt
+from person_detection import PersonDetection as pd
 
 
 # accuracy bulmak için train ve test dataları oluştur accuracy bul
@@ -62,6 +63,8 @@ while True:
     # grab the current frame
     frame = vs.read()
     frame = frame if args.get("video", None) is None else frame[1]
+    print("Please select with the order below:")
+    print("Top Left, Bottom Left, Bottom Right and Top Right.")
 
     # resize the frame, convert it to grayscale
     frame = imutils.resize(frame, width=400)
@@ -86,7 +89,7 @@ while True:
         # if the 'e' key is pressed, break from the loop
         elif key == ord("e"):
             src_points = np.array(src_points)
-            print(src_points)
+            print("Source points for homography: ", src_points)
             cv2.destroyWindow("Homography")
             break
     break
@@ -173,13 +176,25 @@ while True:
                 os.makedirs(path_base)
                 os.makedirs(path_search)
                 os.makedirs(path_thresh)
+                # Coefficients for the search areas in ball tracking
+                point_coefficient = 0.8
+                length_coefficient = 1.3
+                # Points that pass as an argument to the model and these will limit the detection area
+                yolo_x = 0
+                yolo_y = 0
+                yolo_w = 0
+                yolo_h = 0
 
                 for reverse_play in reversed(frame_buffer):
-                    if inner_count == 32:
+                    if inner_count == 35:
                         break
 
-                    search_frame = reverse_play.getFrame()[int(search_y * 0.8): (int(search_y + search_h * 1.3)),
-                                   int(search_x * 0.8): (int(search_x + search_w * 1.3))]
+                    if inner_count > 31:
+                        length_coefficient = 2
+
+                    search_frame = reverse_play.getFrame()[
+                                   int(search_y * point_coefficient): (int(search_y + search_h * length_coefficient)),
+                                   int(search_x * point_coefficient): (int(search_x + search_w * length_coefficient))]
 
                     cv2.imwrite(os.path.join(path_search, 'search_' + str(inner_count) + '.jpg'), search_frame)
 
@@ -191,8 +206,9 @@ while True:
 
                     reverse_thresh = cv2.dilate(reverse_opening, kernel, iterations=2)
 
-                    search_thresh = reverse_thresh[int(search_y * 0.8): (int(search_y + search_h * 1.3)),
-                                    int(search_x * 0.8): (int(search_x + search_w * 1.3))]
+                    search_thresh = reverse_thresh[
+                                    int(search_y * point_coefficient): (int(search_y + search_h * length_coefficient)),
+                                    int(search_x * point_coefficient): (int(search_x + search_w * length_coefficient))]
                     cv2.imwrite(os.path.join(path_thresh, 'search_thresh_' + str(inner_count) + '.jpg'), search_thresh)
 
                     reverse_cnts = cv2.findContours(reverse_thresh.copy(), cv2.RETR_EXTERNAL,
@@ -212,15 +228,26 @@ while True:
                         r_key_points = DetectBall.detect_ball(r_roi)
                         r_key_points_tmp = DetectBall.detect_ball(r_roi_temp)
                         if len(r_key_points) > 0:
-                            if int(search_x * 0.8) < x < int(search_x + search_w * 1.3) and int(
-                                    search_y * 0.8) < y < int(search_y + search_h * 1.3):
+                            if int(search_x * point_coefficient) < x < int(
+                                    search_x + search_w * length_coefficient) and int(
+                                    search_y * point_coefficient) < y < int(search_y + search_h * length_coefficient):
                                 if inner_count != 0:
-                                    if y + h > int(search_y + search_h * 1.3):
+                                    if y + h > int(search_y + search_h * length_coefficient):
+                                        # print("first", inner_count)
                                         cv2.rectangle(frame, (x, y), (x + w, y + h - search_h), (0, 255, 0), 2)
+                                        yolo_x = x
+                                        yolo_y = y
+                                        yolo_w = w
+                                        yolo_h = h
                                         if (x + w) / 2 != 0 and (y + h - search_h) / 2 != 0:
-                                            coef_x.append((x + w / 2))
-                                            coef_y.append((y + h / 2 - search_h))
+                                            if 24 < inner_count < 31:
+                                                coef_x.append((x + w / 2))
+                                                coef_y.append((y + h + 60))
+                                            else:
+                                                coef_x.append((x + w / 2))
+                                                coef_y.append((y + h / 2 - search_h))
                                     else:
+                                        # print("second", inner_count)
                                         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
                                         if (x + w) / 2 != 0 and (y + h) / 2 != 0:
                                             coef_x.append((x + w / 2))
@@ -246,18 +273,20 @@ while True:
                     for index, item in enumerate(coef_y):
                         if index + 1 == len(coef_y):
                             f.write("%s" % item)
-                            src_shot_location = np.append(src_shot_location, [coef_x[index], coef_y[index]])
                         else:
                             f.write("%s," % item)
 
                 np_coefs_x = np.array(coef_x)
                 np_coefs_y = np.array(coef_y)
+                src_shot_location = pd.detect(frame, yolo_x, yolo_y, yolo_w, yolo_h)
+                cv2.imwrite(os.path.join(path_base, "yolo_image" + str(play_count)) + ".jpg", frame)
+                print("Shot location in real world: ", src_shot_location)
 
                 # warped = warp.four_point_transform(frame, src_points)
                 warped, h = pt.apply_homography(src_points, dst_points, frame, dst_img)
                 cv2.imwrite(os.path.join(path_base, "warped_" + str(play_count)) + ".jpg", warped)
 
-                t_shot_homo_coor, t_shot_cart_coor = pt.point_to_point_homography(src_shot_location, h)
+                t_shot_cart_coor, t_shot_homo_coor = pt.point_to_point_homography(src_shot_location, h)
                 cv2.circle(dst_image_clone, (t_shot_cart_coor[0], t_shot_cart_coor[1]), 3, (0, 0, 255), thickness=-1)
                 cv2.imwrite(os.path.join(path_base, "heatmap") + ".jpg", dst_image_clone)
 
