@@ -83,7 +83,8 @@ class PerspectiveTransform:
     @staticmethod
     def point_to_point_homography(src_shot_location, h):
         # convert cartesian coordinates to homogeneous coordinates
-        homo_coordinates = np.append(src_shot_location, [0])
+        homo_coordinates = np.append(src_shot_location, [1])
+        print("Homogeneous coordinates of shot location: ", homo_coordinates)
 
         # do perspective transformation
         transformed_homo_coordinates = np.matmul(h, homo_coordinates)
@@ -92,7 +93,7 @@ class PerspectiveTransform:
         transformed_cart_coordinates = np.array([int(transformed_homo_coordinates[0] / transformed_homo_coordinates[2]),
                                                  int(transformed_homo_coordinates[1] / transformed_homo_coordinates[2])])
 
-        print(transformed_cart_coordinates)
-        print(transformed_homo_coordinates)
+        print("Transformed cartesian coordinates of shot location: ", transformed_cart_coordinates)
+        print("Transformed homogeneous coordinates of shot location: ", transformed_homo_coordinates)
 
         return transformed_cart_coordinates, transformed_homo_coordinates
