@@ -11,6 +11,7 @@ class PersonDetection:
 
     @staticmethod
     def detect(src_image, boundary_x, boundary_y, boundary_w, boundary_h):
+        # Please download the necessary YOLO files before running this code
         path = '/Users/nuwanda/Documents/GitHub/development/ball-tracking/ball-tracking-backboard/yolo-coco'
         src_shot_location = np.array([])
         # minimum probability to filter weak detections
