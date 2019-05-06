@@ -15,4 +15,4 @@ A program that tracks the ball and estimates the shot location of a basketball s
     
 ![alt text](https://github.com/nuwandda/ball-tracking/blob/development/screenshot01.png "Logo Title Text 1")
 
-Thanks to the PyImageSearch for helping me with this project.
+Thanks to the PyImageSearch for showing me the best examples and sources.
