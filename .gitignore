@@ -24,3 +24,4 @@ ball-tracking-backboard/__pycache__/frame.cpython-37.pyc
 .DS_Store
 ball-tracking-backboard/__pycache__
 ball-tracking-backboard/deneme.py
+ball-tracking-backboard/mbpgui.py
