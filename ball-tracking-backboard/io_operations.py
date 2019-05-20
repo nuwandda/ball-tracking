@@ -8,7 +8,7 @@ class IOOperations:
     def __init__(self):
         self.contents = []
 
-    def read_parse_txt(self, path):
+    def readParseTxt(self, path):
         temp_array = np.array([])
         with open(path, 'r') as f:
             self.contents = f.readlines()
@@ -20,7 +20,7 @@ class IOOperations:
 
             return temp_array
 
-    def read_image(self, path):
+    def readImage(self, path):
         filenames = glob.glob(path)
         filenames.sort()
         images = [cv2.imread(img) for img in filenames]

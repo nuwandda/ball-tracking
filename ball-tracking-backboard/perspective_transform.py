@@ -8,7 +8,7 @@ class PerspectiveTransform:
         pass
 
     @staticmethod
-    def order_points(pts):
+    def orderPoints(pts):
         # initialize a list of coordinates that will be ordered
         # such that the first entry in the list is the top-left,
         # the second entry is the top-right, the third is the
@@ -32,7 +32,7 @@ class PerspectiveTransform:
         return rect
 
     @staticmethod
-    def four_point_transform(image, pts):
+    def fourPointsTransform(image, pts):
         # obtain a consistent order of the points and unpack them
         # individually
         rect = pts

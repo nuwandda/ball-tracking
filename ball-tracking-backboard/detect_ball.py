@@ -11,7 +11,7 @@ class DetectBall:
     def __init__(self):
         pass
 
-    def detect_ball(image):
+    def detectBall(image):
         params = cv2.SimpleBlobDetector_Params()
         # Filter by Convexity
         params.filterByConvexity = True

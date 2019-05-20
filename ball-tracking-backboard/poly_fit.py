@@ -49,7 +49,7 @@ class PolyFit:
         plt.show()
 
     @staticmethod
-    def fit_np(x, y, degree):
+    def fitNP(x, y, degree):
         z = np.polyfit(x, y, degree)
         # print(z)
 

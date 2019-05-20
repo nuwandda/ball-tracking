@@ -31,13 +31,13 @@ class Process:
         self.src_points = []
         self.vs = cv2.VideoCapture(self.path)
 
-    def on_mouse(self, event, real_x, real_y, flags, param):
+    def onMouse(self, event, real_x, real_y, flags, param):
         # global self.src_points
         if event == cv2.EVENT_LBUTTONDOWN:
             cv2.circle(self.frame_clone, (real_x, real_y), 2, (0, 0, 255), thickness=-1)
             self.src_points.append([real_x, real_y])
 
-    def get_init_four_points(self):
+    def getInitFourPoints(self):
         while True:
             # grab the current frame
             self.frame = self.vs.read()
@@ -53,7 +53,7 @@ class Process:
             cv2.namedWindow("Homography")
             cv2.moveWindow("Homography", 700, 0)
             # cv2.startWindowThread()
-            cv2.setMouseCallback("Homography", self.on_mouse)
+            cv2.setMouseCallback("Homography", self.onMouse)
 
             # keep looping until the 'e' key is pressed
             # this loop is for choosing real points for homography
@@ -75,7 +75,7 @@ class Process:
                     break
             break
 
-    def get_init_roi(self):
+    def getInitROI(self):
         # Select ROI
         self.r = cv2.selectROI(self.frame_clone)
         cv2.moveWindow("ROI selector", 700, 0)
@@ -183,7 +183,7 @@ class Process:
                 (x, y, w, h) = cv2.boundingRect(c)
                 points_of_ball = [int(x) + int(self.r[0]), int(y) + int(self.r[1]), w, h]
                 roi = imCrop[y: (y + h), x: (x + w)]
-                key_points = DetectBall.detect_ball(roi)
+                key_points = DetectBall.detectBall(roi)
                 if len(key_points) > 0:
                     cv2.rectangle(imCrop, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
@@ -249,8 +249,8 @@ class Process:
 
                                 r_roi = reverse_play.getFrame()[y: (y + h), x: (x + w)]
                                 r_roi_temp = reverse_play.getFrame()[y + 10: (y + h), x + 10: (x + w)]
-                                r_key_points = DetectBall.detect_ball(r_roi)
-                                r_key_points_tmp = DetectBall.detect_ball(r_roi_temp)
+                                r_key_points = DetectBall.detectBall(r_roi)
+                                r_key_points_tmp = DetectBall.detectBall(r_roi_temp)
                                 if len(r_key_points) > 0:
                                     if int(search_x * point_coefficient) < x < int(
                                             search_x + search_w * length_coefficient) and int(
