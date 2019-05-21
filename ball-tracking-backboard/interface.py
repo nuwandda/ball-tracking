@@ -60,7 +60,7 @@ class Interface:
                         about_window.Close()  
                         about_window_active = False  
                         window.UnHide()
-                        break  
+                        break
 
             if process is not None:
                 dst_image = cv2.cvtColor(process.dst_image_clone, cv2.COLOR_BGR2RGB)
