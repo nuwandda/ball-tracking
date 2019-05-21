@@ -20,8 +20,9 @@ import sys
 
 class Process:
 
-    def __init__(self, path):
+    def __init__(self, path, play_border):
         self.path = path
+        self.play_border = play_border
         vs_first = cv2.VideoCapture(self.path)
         self.frame = vs_first.read()
         self.frame = self.frame[1]
@@ -151,7 +152,7 @@ class Process:
             if five_frame_processed == 6:
                 five_frame_processed = 0
 
-            if play_count == 5:
+            if play_count == int(self.play_border):
                 break
 
             # resize the frame, convert it to grayscale
