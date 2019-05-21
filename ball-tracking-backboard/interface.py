@@ -16,11 +16,12 @@ class Interface:
                   [sg.Text('Choose A Folder', size=(35, 1))],
                   [sg.Text('Your Folder', size=(15, 1), auto_size_text=False, justification='right'),
                    sg.InputText('Default Folder', key='path'), sg.FileBrowse()],
-                  [sg.Button('Load'), sg.Button('Start'), sg.Button('Save'), sg.Button('Quit')]]
+                  [sg.Button('Load'), sg.Button('Start'), sg.Button('Save'), sg.Button('About'), sg.Button('Quit')]]
 
         window = sg.Window('My Basketball Coach', default_element_size=(80, 1)).Layout(layout)
         window.Move(0, 0)
         process = None
+        about_window_active = False
 
         while True:
             event, values = window.ReadNonBlocking()
@@ -39,6 +40,18 @@ class Interface:
             elif event == 'Save':
                 save_path = sg.PopupGetFile('Choose', save_as=True)
                 cv2.imwrite(save_path + ".png", process.dst_image_clone)
+            elif event == 'About' and not about_window_active:
+                about_window_active = True
+                window.Hide()
+                layout_about = [[sg.Text('About')], [sg.Button('Exit')]]
+                about_window = sg.Window('About', layout_about)
+                while True:  
+                    event2, values2 = about_window.Read()  
+                    if event2 == 'Exit':  
+                        about_window.Close()  
+                        about_window_active = False  
+                        window.UnHide()  
+                        break  
 
             if process is not None:
                 dst_image = cv2.cvtColor(process.dst_image_clone, cv2.COLOR_BGR2RGB)
